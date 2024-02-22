@@ -8,10 +8,16 @@ use std::path::{Path, PathBuf};
 pub enum GitHost {
     Github,
     Gitlab,
+    Generic,
 }
 
 impl GitHost {
     pub fn source(&self, package: &Package) -> String {
+        let path = std::env::var("CARGO_AUR_ARCHIVE").ok();
+        if path.is_some() {
+            return path.unwrap();
+        }
+
         match self {
             GitHost::Github => format!(
                 "{}/releases/download/v$pkgver/{}-$pkgver-x86_64.tar.gz",
@@ -20,6 +26,10 @@ impl GitHost {
             GitHost::Gitlab => format!(
                 "{}/-/archive/v$pkgver/{}-$pkgver-x86_64.tar.gz",
                 package.repository, package.name
+            ),
+            GitHost::Generic => format!(
+                    "{}/archive/v$pkgver.tar.gz",
+                    package.repository
             ),
         }
     }
@@ -44,13 +54,13 @@ impl Package {
         output.join(format!("{}-{}-x86_64.tar.gz", self.name, self.version))
     }
 
-    pub fn git_host(&self) -> Option<GitHost> {
+    pub fn git_host(&self) -> GitHost {
         if self.repository.starts_with("https://github") {
-            Some(GitHost::Github)
+            GitHost::Github
         } else if self.repository.starts_with("https://gitlab") {
-            Some(GitHost::Gitlab)
+            GitHost::Gitlab
         } else {
-            None
+            GitHost::Generic
         }
     }
 }

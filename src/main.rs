@@ -1,7 +1,7 @@
 mod error;
 
 use crate::error::Error;
-use cargo_aur::{GitHost, Package};
+use cargo_aur::Package;
 use colored::*;
 use gumdrop::{Options, ParsingStyle};
 use hmac_sha256::Hash;
@@ -188,7 +188,6 @@ where
         .join("\n");
     let source = package
         .git_host()
-        .unwrap_or(GitHost::Github)
         .source(&config.package);
 
     writeln!(file, "{}", authors)?;
