@@ -45,6 +45,9 @@ struct Args {
     musl: bool,
     /// Don't actually build anything.
     dryrun: bool,
+    /// collect unused free arg(s)
+    #[options(free)]
+    _free: Vec<String>
 }
 
 #[derive(Deserialize, Debug)]
