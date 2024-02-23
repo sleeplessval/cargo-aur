@@ -70,6 +70,16 @@ sufficient demand.
 If you specify a `[[bin]]` section in your `Cargo.toml` and set the `name`
 field, this will be used as the binary name to install within the PKGBUILD.
 
+### Custom Package Names
+
+If you set the `CARGO_AUR_NAME` environment variable, its value will be used
+to set the AUR package name in the outputted PKGBUILD.
+
+### Custom Archive URL
+
+If you set the `CARGO_AUR_ARCHIVE` environment variable, its value will be used
+to set the URL to the tarball in the outputted PKGBUILD.
+
 ### `depends` and `optdepends`
 
 If your package requires other Arch packages at runtime, you can specify these
