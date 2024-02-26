@@ -11,6 +11,7 @@ pub enum GitHost {
 }
 
 impl GitHost {
+    /// The expected tarball location for a Package.
     pub fn source(&self, package: &Package) -> String {
         let path = std::env::var("CARGO_AUR_ARCHIVE").ok();
         if path.is_some() {
@@ -49,6 +50,7 @@ impl Package {
         output.join(format!("{}-{}-x86_64.tar.gz", self.name, self.version))
     }
 
+    /// The git host of this Package's repository.
     pub fn git_host(&self) -> GitHost {
         if self.repository.starts_with("https://gitlab") {
             GitHost::Gitlab
