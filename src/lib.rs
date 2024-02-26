@@ -8,7 +8,6 @@ use std::path::{Path, PathBuf};
 pub enum GitHost {
     Github,
     Gitlab,
-    Generic,
 }
 
 impl GitHost {
@@ -26,10 +25,6 @@ impl GitHost {
             GitHost::Gitlab => format!(
                 "{}/-/archive/v$pkgver/{}-$pkgver-x86_64.tar.gz",
                 package.repository, package.name
-            ),
-            GitHost::Generic => format!(
-                    "{}/archive/v$pkgver.tar.gz",
-                    package.repository
             ),
         }
     }
@@ -55,12 +50,10 @@ impl Package {
     }
 
     pub fn git_host(&self) -> GitHost {
-        if self.repository.starts_with("https://github") {
-            GitHost::Github
-        } else if self.repository.starts_with("https://gitlab") {
+        if self.repository.starts_with("https://gitlab") {
             GitHost::Gitlab
         } else {
-            GitHost::Generic
+            GitHost::Github
         }
     }
 }
