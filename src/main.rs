@@ -57,16 +57,6 @@ struct Config {
     bin: Vec<Binary>,
 }
 
-impl Config {
-    /// The name of the compiled binary that should be copied to the tarball.
-    fn binary_name(&self) -> &str {
-        self.bin
-            .first()
-            .map(|bin| bin.name.as_str())
-            .unwrap_or(self.package.name.as_str())
-    }
-}
-
 #[derive(Deserialize, Debug)]
 struct Binary {
     name: String,

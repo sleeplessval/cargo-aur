@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 pub enum GitHost {
     Github,
     Gitlab,
+    Generic,
 }
 
 impl GitHost {
@@ -20,12 +21,16 @@ impl GitHost {
 
         match self {
             GitHost::Github => format!(
-                "{}/releases/download/v$pkgver/{}-$pkgver-x86_64.tar.gz",
-                package.repository, package.name
+                "{}/archive/refs/tags/v$pkgver.tar.gz",
+                package.repository
             ),
             GitHost::Gitlab => format!(
-                "{}/-/archive/v$pkgver/{}-$pkgver-x86_64.tar.gz",
+                "{}/-/archive/v$pkgver/{}-$pkgver.tar.gz",
                 package.repository, package.name
+            ),
+            GitHost::Generic => format!(
+                "{}/archive/v$pkgver.tar.gz",
+                package.repository
             ),
         }
     }
@@ -45,17 +50,15 @@ pub struct Package {
 }
 
 impl Package {
-    /// The name of the tarball that should be produced from this `Package`.
-    pub fn tarball(&self, output: &Path) -> PathBuf {
-        output.join(format!("{}-{}-x86_64.tar.gz", self.name, self.version))
-    }
 
     /// The git host of this Package's repository.
     pub fn git_host(&self) -> GitHost {
-        if self.repository.starts_with("https://gitlab") {
+        if self.repository.starts_with("https://github") {
+            GitHost::Github
+        } else if self.repository.starts_with("https://gitlab") {
             GitHost::Gitlab
         } else {
-            GitHost::Github
+            GitHost::Generic
         }
     }
 }
