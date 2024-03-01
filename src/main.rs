@@ -185,8 +185,10 @@ where
 
     // Pull fields from metadata
     let metadata = &package.metadata.aur;
-    let package_name = metadata.name.clone().unwrap_or(format!("{}-bin", package.name));
-    let source = metadata.archive.clone().unwrap_or(package.git_host().source(&config.package));
+    let package_name = metadata.name.clone()
+        .unwrap_or( format!("{}-bin", package.name) );
+    let source = metadata.archive.clone()
+        .unwrap_or( package.git_host().source(&config.package) );
     let dependencies = format!("{}", metadata);
 
     // Write PKGBUILD
