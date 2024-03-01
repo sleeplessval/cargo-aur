@@ -41,7 +41,8 @@ pub struct Package {
     pub homepage: String,
     pub repository: String,
     pub license: String,
-    pub metadata: Option<Metadata>,
+    #[serde(default)]
+    pub metadata: Metadata,
 }
 
 impl Package {
@@ -60,53 +61,40 @@ impl Package {
     }
 }
 
-// {
-//     Package {
-//         name: "aura".to_string(),
-//         version: "1.2.3".to_string(),
-//         authors: vec![],
-//         description: "".to_string(),
-//         homepage: "".to_string(),
-//         repository: "".to_string(),
-//         license: "".to_string(),
-//         metadata: None,
-//     }.tarball(Path::new("foobar"))
-// }
-
-/// The `[package.metadata]` TOML block.
-#[derive(Deserialize, Debug)]
+#[derive(Debug, Default, Deserialize)]
 pub struct Metadata {
-    /// Deprecated.
     #[serde(default)]
-    pub depends: Vec<String>,
-    /// Deprecated.
-    #[serde(default)]
-    pub optdepends: Vec<String>,
-    /// > [package.metadata.aur]
-    pub aur: Option<AUR>,
+    pub aur: Aur,
 }
 
-impl std::fmt::Display for Metadata {
+
+/// The inner values of a `[package.metadata.aur]` TOML block.
+#[derive(Debug, Deserialize)]
+pub struct Aur {
+    #[serde(default)]
+    pub depends: Vec<String>,
+    #[serde(default)]
+    pub optdepends: Vec<String>,
+    #[serde(default)]
+    pub archive: Option<String>,
+    #[serde(default)]
+    pub name: Option<String>,
+}
+
+impl Default for Aur {
+    fn default() -> Aur {
+        Aur{
+            depends: Vec::new(),
+            optdepends: Vec::new(),
+            archive: None,
+            name: None
+        }
+    }
+}
+
+impl std::fmt::Display for Aur {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // Reconcile which section to read extra dependency information from.
-        // The format we hope the user is using is:
-        //
-        // > [package.metadata.aur]
-        //
-        // But version 1.5 originally supported:
-        //
-        // > [package.metadata]
-        //
-        // To avoid a sudden breakage for users, we support both definition
-        // locations but favour the newer one.
-        //
-        // We print a warning to the user elsewhere if they're still using the
-        // old way.
-        let (deps, opts) = if let Some(aur) = self.aur.as_ref() {
-            (aur.depends.as_slice(), aur.optdepends.as_slice())
-        } else {
-            (self.depends.as_slice(), self.optdepends.as_slice())
-        };
+        let (deps, opts) = (self.depends.as_slice(), self.optdepends.as_slice());
 
         match deps {
             [middle @ .., last] => {
@@ -138,11 +126,3 @@ impl std::fmt::Display for Metadata {
     }
 }
 
-/// The inner values of a `[package.metadata.aur]` TOML block.
-#[derive(Deserialize, Debug)]
-pub struct AUR {
-    #[serde(default)]
-    depends: Vec<String>,
-    #[serde(default)]
-    optdepends: Vec<String>,
-}
