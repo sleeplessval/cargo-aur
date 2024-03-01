@@ -70,15 +70,18 @@ sufficient demand.
 If you specify a `[[bin]]` section in your `Cargo.toml` and set the `name`
 field, this will be used as the binary name to install within the PKGBUILD.
 
-### Custom Package Name
+### `name` and `archive`
 
-If you set the `CARGO_AUR_NAME` environment variable, its value will override
-the package name in the outputted PKGBUILD.
+If your package has a non-default package name or non-default tarball URL, you
+can specify them in your `Cargo.toml` like this:
 
-### Custom Archive URL
-
-If you set the `CARGO_AUR_ARCHIVE` environment variable, its value will override
-the URL to the tarball in the outputted PKGBUILD.
+```toml
+[package.metadata.aur]
+name = "mypackage"
+archive = "https://archlinux.org/" # absolute URL
+# OR
+archive = "non/default/path.tar.gz" # relative URL to repository
+```
 
 ### `depends` and `optdepends`
 
