@@ -183,11 +183,13 @@ where
         .collect::<Vec<_>>()
         .join("\n");
 
+    // Pull fields from metadata
     let metadata = &package.metadata.aur;
     let package_name = metadata.name.clone().unwrap_or(format!("{}-bin", package.name));
     let source = metadata.archive.clone().unwrap_or(package.git_host().source(&config.package));
     let dependencies = format!("{metadata}");
 
+    // Write PKGBUILD
     writeln!(file, "{}", authors)?;
     writeln!(file, "#")?;
     writeln!(
@@ -209,7 +211,12 @@ where
         writeln!(file, "{}", metadata)?;
     }
 
-    writeln!(file, "source=(\"{source}\")")?;
+    // If source property is not a URL, make it relative to the repository
+    if !source.starts_with("https://") {
+        writeln!(file, "source=(\"{}/{source}\")", package.repository)?;
+    } else {
+        writeln!(file, "source=(\"{source}\")")?;
+    }
     writeln!(file, "sha256sums=(\"{}\")", sha256)?;
     writeln!(file)?;
     writeln!(file, "package() {{")?;

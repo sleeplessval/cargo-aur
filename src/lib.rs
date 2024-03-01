@@ -61,6 +61,7 @@ impl Package {
     }
 }
 
+///    `[package.metadata]` TOML block, used to access `[package.metadata.aur]`
 #[derive(Debug, Default, Deserialize)]
 pub struct Metadata {
     #[serde(default)]
@@ -72,22 +73,22 @@ pub struct Metadata {
 #[derive(Debug, Deserialize)]
 pub struct Aur {
     #[serde(default)]
-    pub depends: Vec<String>,
-    #[serde(default)]
-    pub optdepends: Vec<String>,
-    #[serde(default)]
     pub archive: Option<String>,
     #[serde(default)]
     pub name: Option<String>,
+    #[serde(default)]
+    pub depends: Vec<String>,
+    #[serde(default)]
+    pub optdepends: Vec<String>,
 }
 
 impl Default for Aur {
     fn default() -> Aur {
         Aur{
+            archive: None,
+            name: None,
             depends: Vec::new(),
             optdepends: Vec::new(),
-            archive: None,
-            name: None
         }
     }
 }
