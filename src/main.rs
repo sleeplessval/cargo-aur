@@ -45,7 +45,7 @@ struct Args {
     musl: bool,
     /// Don't actually build anything.
     dryrun: bool,
-    /// collect unused free arg(s)
+    /// collect unused free arg(s) so "cargo aur" doesn't panic
     #[options(free)]
     _free: Vec<String>
 }
