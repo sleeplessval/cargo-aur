@@ -8,7 +8,6 @@ use gumdrop::{Options, ParsingStyle};
 use hmac_sha256::Hash;
 use std::fs::{DirEntry, File};
 use std::io::{BufWriter, Write};
-use std::ops::Not;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
@@ -30,21 +29,35 @@ struct Args {
 }
 
 fn main() -> ExitCode {
+    // Parse arguments
     let args = Args::parse_args_or_exit(ParsingStyle::AllOptions);
 
+    // Handle version flag
     if args.version {
         let version = env!("CARGO_PKG_VERSION");
         println!("{}", version);
-        ExitCode::SUCCESS
-    } else if let Err(e) = work(args) {
-        eprintln!("{} {}: {}", "::".bold(), "Error".bold().red(), e);
-        ExitCode::FAILURE
-    } else {
-        println!("{} {}", "::".bold(), "Done.".bold().green());
-        ExitCode::SUCCESS
+        return ExitCode::SUCCESS;
     }
+
+    // Do actual work and handle the Result
+    let result = work(args);
+    if let Err(e) = result {
+        eprintln!(
+            "{} {}: {e}",
+            "::".bold(),
+            "Error".bold().red()
+        );
+        return ExitCode::FAILURE;
+    }
+    println!(
+        "{} {}",
+        "::".bold(),
+        "Done.".bold().green()
+    );
+    ExitCode::SUCCESS
 }
 
+/// Main program body, wrapped for error handling.
 fn work(args: Args) -> Result<(), Error> {
     // We can't proceed if the user has specified `--musl` but doesn't have the
     // target installed.
@@ -67,8 +80,10 @@ fn work(args: Args) -> Result<(), Error> {
     // operation later on will fail.
     std::fs::create_dir_all(&output)?;
 
+    // Read config from Cargo.toml
     let config = cargo_config()?;
 
+    // Copy license file if needed
     let license = if must_copy_license(&config.package.license) {
         p("LICENSE file will be installed manually.".bold().yellow());
         Some(license_file()?)
@@ -76,16 +91,19 @@ fn work(args: Args) -> Result<(), Error> {
         None
     };
 
-    if args.dryrun.not() {
-        release_build(args.musl)?;
-        tarball(args.musl, &cargo_target, &output, license.as_ref(), &config)?;
-        let sha256: String = sha256sum(&config.package, &output)?;
-
-        // Write the PKGBUILD.
-        let path = output.join("PKGBUILD");
-        let file = BufWriter::new(File::create(&path)?);
-        pkgbuild(file, &config, &sha256, license.as_ref())?;
+    // Handle dry-run flag
+    if args.dryrun {
+        return Ok(());
     }
+
+    release_build(args.musl)?;
+    tarball(args.musl, &cargo_target, &output, license.as_ref(), &config)?;
+    let sha256: String = sha256sum(&config.package, &output)?;
+
+    // Write the PKGBUILD.
+    let path = output.join("PKGBUILD");
+    let file = BufWriter::new(File::create(&path)?);
+    pkgbuild(file, &config, &sha256, license.as_ref())?;
 
     Ok(())
 }
@@ -105,7 +123,7 @@ fn cargo_config() -> Result<Config, Error> {
 /// missing licenses, and since many Rust crates use them we must make this
 /// check.
 fn must_copy_license(license: &str) -> bool {
-    LICENSES.contains(&license).not()
+    !LICENSES.contains(&license)
 }
 
 /// The path to the `LICENSE` file.
