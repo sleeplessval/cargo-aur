@@ -1,37 +1,16 @@
+mod config;
 mod error;
 
+use crate::config::{LICENSES, Config, Package};
 use crate::error::Error;
-use cargo_aur::Package;
 use colored::*;
 use gumdrop::{Options, ParsingStyle};
 use hmac_sha256::Hash;
-use serde::Deserialize;
 use std::fs::{DirEntry, File};
 use std::io::{BufWriter, Write};
 use std::ops::Not;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
-
-/// Licenses available from the Arch Linux `licenses` package.
-///
-/// That package contains other licenses, but I've excluded here those unlikely
-/// to be used by Rust crates.
-const LICENSES: &[&str] = &[
-    "AGPL-3.0-only",
-    "AGPL-3.0-or-later",
-    "Apache-2.0",
-    "BSL-1.0", // Boost Software License.
-    "GPL-2.0-only",
-    "GPL-2.0-or-later",
-    "GPL-3.0-only",
-    "GPL-3.0-or-later",
-    "LGPL-2.0-only",
-    "LGPL-2.0-or-later",
-    "LGPL-3.0-only",
-    "LGPL-3.0-or-later",
-    "MPL-2.0",   // Mozilla Public License.
-    "Unlicense", // Not to be confused with "Unlicensed".
-];
 
 #[derive(Options)]
 struct Args {
@@ -48,28 +27,6 @@ struct Args {
     /// collect unused free arg(s) so "cargo aur" doesn't panic
     #[options(free)]
     _free: Vec<String>
-}
-
-#[derive(Deserialize, Debug)]
-struct Config {
-    package: Package,
-    #[serde(default)]
-    bin: Vec<Binary>,
-}
-
-impl Config {
-    /// The name of the compiled binary that should be copied to the tarball.
-    fn binary_name(&self) -> &str {
-        self.bin
-            .first()
-            .map(|bin| bin.name.as_str())
-            .unwrap_or(self.package.name.as_str())
-    }
-}
-
-#[derive(Deserialize, Debug)]
-struct Binary {
-    name: String,
 }
 
 fn main() -> ExitCode {
